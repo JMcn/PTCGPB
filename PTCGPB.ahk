@@ -1,9 +1,9 @@
-version = Arturos PTCGP Bot
+version = Rockets PTCGP Bot
 #SingleInstance, force
 CoordMode, Mouse, Screen
 SetTitleMatchMode, 3
 
-githubUser := "Arturo-1212"
+githubUser := ""
 repoName := "PTCGPB"
 localVersion := "v6.3.9"
 scriptFolder := A_ScriptDir
@@ -17,7 +17,7 @@ if not A_IsAdmin
 	ExitApp
 }
 
-KillADBProcesses()
+;KillADBProcesses()
 
 global Instances, jsonFileName, PacksText, runMain, scaleParam
 
@@ -40,6 +40,7 @@ if FileExist(packsFile) ; Check if the file exists
 }
 InitializeJsonFile() ; Create or open the JSON file
 global FriendID
+
 ; Create the main GUI for selecting number of instances
 IniRead, FriendID, Settings.ini, UserSettings, FriendID
 IniRead, waitTime, Settings.ini, UserSettings, waitTime, 5
@@ -56,7 +57,7 @@ IniRead, SelectedMonitorIndex, Settings.ini, UserSettings, SelectedMonitorIndex,
 IniRead, swipeSpeed, Settings.ini, UserSettings, swipeSpeed, 300
 IniRead, deleteMethod, Settings.ini, UserSettings, deleteMethod, 3 Pack
 IniRead, runMain, Settings.ini, UserSettings, runMain, 1
-IniRead, heartBeat, Settings.ini, UserSettings, heartBeat, 0
+IniRead, heartBeat, Settings.ini, UserSettings, heartBeat, 1
 IniRead, heartBeatWebhookURL, Settings.ini, UserSettings, heartBeatWebhookURL, ""
 IniRead, heartBeatName, Settings.ini, UserSettings, heartBeatName, ""
 IniRead, DeadHBWebhookURL, Settings.ini, UserSettings, DeadHBWebhookURL, ""
@@ -152,25 +153,16 @@ if(StrLen(heartBeatWebhookURL) < 3)
 	heartBeatWebhookURL =
 if(StrLen(DeadHBWebhookURL) < 3)
 	DeadHBWebhookURL =
-if(heartBeat) {
-	Gui, Add, Checkbox, Checked vheartBeat x30 y295 gdiscordSettings, Discord Heartbeat
-	Gui, Add, Text, vhbName x30 y315, Name:
-	Gui, Add, Edit, vheartBeatName w50 x70 y310 h18, %heartBeatName%
-	Gui, Add, Text, vhbText x125 y315, (the reroller account name)
-	Gui, Add, Text, vhbURL x30 y340, Webhook URL:
-	Gui, Add, Edit, vheartBeatWebhookURL h20 w100 x110 y335 h18, %heartBeatWebhookURL%
-	Gui, Add, Text, vDhbURL x30 y365, DeadHBWebhook URL:
-	Gui, Add, Edit, vDeadHBWebhookURL h20 w100 x130 y360 h18, %DeadHBWebhookURL%
-} else {
-	Gui, Add, Checkbox, vheartBeat x30 y295 gdiscordSettings, Discord Heartbeat
-	Gui, Add, Text, vhbName x30 y315 Hidden, Name:
-	Gui, Add, Edit, vheartBeatName w50 x70 y310 h18 Hidden, %heartBeatName%
-	Gui, Add, Text, vhbText x125 y315 Hidden, (the reroller account name)
-	Gui, Add, Text, vhbURL x30 y340 Hidden, Webhook URL:
-	Gui, Add, Edit, vheartBeatWebhookURL h20 w100 x110 y335 h18 Hidden, %heartBeatWebhookURL%
-	Gui, Add, Text, vDhbURL x30 y365 Hidden, DeadHBWebhook URL:
-	Gui, Add, Edit, vDeadHBWebhookURL h20 w100 x150 y360 h18 Hidden, %DeadHBWebhookURL%
-}
+
+Gui, Add, Text, x10 y295, Discord Heartbeat:
+Gui, Add, Text, vhbName x30 y315, Name:
+Gui, Add, Edit, vheartBeatName w50 x70 y310 h18, %heartBeatName%
+Gui, Add, Text, vhbText x125 y315, (the reroller account name)
+Gui, Add, Text, vhbURL x30 y340, Webhook URL:
+Gui, Add, Edit, vheartBeatWebhookURL h20 w100 x110 y335 h18, %heartBeatWebhookURL%
+Gui, Add, Text, vDhbURL x30 y365, DeadHBWebhook URL:
+Gui, Add, Edit, vDeadHBWebhookURL h20 w100 x130 y360 h18, %DeadHBWebhookURL%
+
 
 Gui, Add, Text, x275 y10, Choose Pack(s):
 
@@ -265,9 +257,6 @@ if(slowMotion)
 else
 	Gui, Add, Checkbox, vslowMotion x295 y310, Base Game Compatibility
 
-Gui, Add, Button, gOpenLink x15 y380 w120, Buy Me a Coffee <3
-Gui, Add, Button, gOpenDiscord x145 y380 w120, Join our Discord!
-;Gui, Add, Button, gCheckForUpdates x275 y360 w120, Check for updates
 Gui, Add, Button, gArrangeWindows x275 y380 w120, Arrange Windows
 Gui, Add, Button, gStart x405 y380 w120, Start
 
@@ -281,31 +270,8 @@ if (defaultLanguage = "Scale125") {
 
 ; Gui, Add, DropDownList, x80 y245 w145 vdefaultLanguage choose%defaultLang%, Scale125
 
-Gui, Show, , %localVersion% PTCGPB Bot Setup [Non-Commercial 4.0 International License] ;'
+Gui, Show, , %localVersion% Rockets PTCGPB Bot Setup [Non-Commercial 4.0 International License] ;'
 Return
-
-discordSettings:
-	Gui, Submit, NoHide
-
-	if (heartBeat) {
-		GuiControl, Show, heartBeatName
-		GuiControl, Show, heartBeatWebhookURL
-		GuiControl, Show, hbName
-		GuiControl, Show, hbText
-		GuiControl, Show, hbURL
-		GuiControl, Show, DhbURL
-		GuiControl, Show, DeadHBWebhookURL
-	}
-	else {
-		GuiControl, Hide, heartBeatName
-		GuiControl, Hide, heartBeatWebhookURL
-		GuiControl, Hide, hbName
-		GuiControl, Hide, hbText
-		GuiControl, Hide, hbURL
-		GuiControl, Hide, DhbURL
-		GuiControl, Hide, DeadHBWebhookURL
-	}
-return
 
 deleteSettings:
 	Gui, Submit, NoHide

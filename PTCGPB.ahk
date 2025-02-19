@@ -17,10 +17,6 @@ if not A_IsAdmin
 	ExitApp
 }
 
-MsgBox, 64, The project is now licensed under CC BY-NC 4.0, The original intention of this project was not for it to be used for paid services even those disguised as 'donations.' I hope people respect my wishes and those of the community. `nThe project is now licensed under CC BY-NC 4.0, which allows you to use, modify, and share the software only for non-commercial purposes. Commercial use, including using the software to provide paid services or selling it (even if donations are involved), is not allowed under this license. The new license applies to this and all future releases.
-
-CheckForUpdate()
-
 KillADBProcesses()
 
 global Instances, jsonFileName, PacksText, runMain, scaleParam
@@ -55,6 +51,7 @@ IniRead, Columns, Settings.ini, UserSettings, Columns, 5
 IniRead, godPack, Settings.ini, UserSettings, godPack, Continue
 IniRead, Instances, Settings.ini, UserSettings, Instances, 1
 IniRead, defaultLanguage, Settings.ini, UserSettings, defaultLanguage, Scale125
+IniRead, MainLanguage, Settings.ini, UserSettings, MainLanguage, Chinese
 IniRead, SelectedMonitorIndex, Settings.ini, UserSettings, SelectedMonitorIndex, 1
 IniRead, swipeSpeed, Settings.ini, UserSettings, swipeSpeed, 300
 IniRead, deleteMethod, Settings.ini, UserSettings, deleteMethod, 3 Pack
@@ -62,6 +59,7 @@ IniRead, runMain, Settings.ini, UserSettings, runMain, 1
 IniRead, heartBeat, Settings.ini, UserSettings, heartBeat, 0
 IniRead, heartBeatWebhookURL, Settings.ini, UserSettings, heartBeatWebhookURL, ""
 IniRead, heartBeatName, Settings.ini, UserSettings, heartBeatName, ""
+IniRead, DeadHBWebhookURL, Settings.ini, UserSettings, DeadHBWebhookURL, ""
 IniRead, nukeAccount, Settings.ini, UserSettings, nukeAccount, 0
 IniRead, packMethod, Settings.ini, UserSettings, packMethod, 0
 IniRead, TrainerCheck, Settings.ini, UserSettings, TrainerCheck, 0
@@ -104,6 +102,8 @@ Gui, Add, Text, x30 y140, Min. 2 Stars:
 Gui, Add, Edit, vminStars w25 x90 y135 h18, %minStars%
 
 Gui, Add, Text, x10 y160, Method:
+Gui, Add, Text, x130 y160, Language:
+Gui, Add, Picture, x450 y340 w30 h30, %A_ScriptDir%\logs\dino.png
 
 ; Pack selection logic
 if (deleteMethod = "5 Pack") {
@@ -113,9 +113,17 @@ if (deleteMethod = "5 Pack") {
 } else if (deleteMethod = "Inject") {
 	defaultDelete := 3
 }
+; Pack selection logic
+if (MainLanguage = "Chinese") {
+	defaultMainLanguage := 1
+} else if (MainLanguage = "English") {
+	defaultMainLanguage := 2
+} else if (MainLanguage = "Doods") {
+	defaultMainLanguage := 3
+}
 
 Gui, Add, DropDownList, vdeleteMethod gdeleteSettings choose%defaultDelete% x55 y158 w60, 5 Pack|3 Pack|Inject
-
+Gui, Add, DropDownList, vMainLanguage gdeleteSettings choose%defaultMainLanguage% x185 y158 w60, Chinese|English|Doods
 if(packMethod)
 	Gui, Add, Checkbox, Checked vpackMethod x30 y185, 1 Pack Method
 else
@@ -134,6 +142,7 @@ if(StrLen(discordWebhookURL) < 3)
 Gui, Add, Text, x10 y225, Discord Settings:
 Gui, Add, Text, x30 y245, Discord ID:
 Gui, Add, Edit, vdiscordUserId w100 x90 y240 h18, %discordUserId%
+Gui, Add, Text, x190 y245, (Main account)
 Gui, Add, Text, x30 y270, Discord Webhook URL:
 Gui, Add, Edit, vdiscordWebhookURL h20 w100 x150 y265 h18, %discordWebhookURL%
 
@@ -141,18 +150,26 @@ if(StrLen(heartBeatName) < 3)
 	heartBeatName =
 if(StrLen(heartBeatWebhookURL) < 3)
 	heartBeatWebhookURL =
+if(StrLen(DeadHBWebhookURL) < 3)
+	DeadHBWebhookURL =
 if(heartBeat) {
 	Gui, Add, Checkbox, Checked vheartBeat x30 y295 gdiscordSettings, Discord Heartbeat
 	Gui, Add, Text, vhbName x30 y315, Name:
 	Gui, Add, Edit, vheartBeatName w50 x70 y310 h18, %heartBeatName%
+	Gui, Add, Text, vhbText x125 y315, (the reroller account name)
 	Gui, Add, Text, vhbURL x30 y340, Webhook URL:
 	Gui, Add, Edit, vheartBeatWebhookURL h20 w100 x110 y335 h18, %heartBeatWebhookURL%
+	Gui, Add, Text, vDhbURL x30 y365, DeadHBWebhook URL:
+	Gui, Add, Edit, vDeadHBWebhookURL h20 w100 x130 y360 h18, %DeadHBWebhookURL%
 } else {
 	Gui, Add, Checkbox, vheartBeat x30 y295 gdiscordSettings, Discord Heartbeat
 	Gui, Add, Text, vhbName x30 y315 Hidden, Name:
 	Gui, Add, Edit, vheartBeatName w50 x70 y310 h18 Hidden, %heartBeatName%
+	Gui, Add, Text, vhbText x125 y315 Hidden, (the reroller account name)
 	Gui, Add, Text, vhbURL x30 y340 Hidden, Webhook URL:
 	Gui, Add, Edit, vheartBeatWebhookURL h20 w100 x110 y335 h18 Hidden, %heartBeatWebhookURL%
+	Gui, Add, Text, vDhbURL x30 y365 Hidden, DeadHBWebhook URL:
+	Gui, Add, Edit, vDeadHBWebhookURL h20 w100 x150 y360 h18 Hidden, %DeadHBWebhookURL%
 }
 
 Gui, Add, Text, x275 y10, Choose Pack(s):
@@ -250,7 +267,7 @@ else
 
 Gui, Add, Button, gOpenLink x15 y380 w120, Buy Me a Coffee <3
 Gui, Add, Button, gOpenDiscord x145 y380 w120, Join our Discord!
-Gui, Add, Button, gCheckForUpdates x275 y360 w120, Check for updates
+;Gui, Add, Button, gCheckForUpdates x275 y360 w120, Check for updates
 Gui, Add, Button, gArrangeWindows x275 y380 w120, Arrange Windows
 Gui, Add, Button, gStart x405 y380 w120, Start
 
@@ -267,10 +284,6 @@ if (defaultLanguage = "Scale125") {
 Gui, Show, , %localVersion% PTCGPB Bot Setup [Non-Commercial 4.0 International License] ;'
 Return
 
-CheckForUpdates:
-	CheckForUpdate()
-return
-
 discordSettings:
 	Gui, Submit, NoHide
 
@@ -278,13 +291,19 @@ discordSettings:
 		GuiControl, Show, heartBeatName
 		GuiControl, Show, heartBeatWebhookURL
 		GuiControl, Show, hbName
+		GuiControl, Show, hbText
 		GuiControl, Show, hbURL
+		GuiControl, Show, DhbURL
+		GuiControl, Show, DeadHBWebhookURL
 	}
 	else {
 		GuiControl, Hide, heartBeatName
 		GuiControl, Hide, heartBeatWebhookURL
 		GuiControl, Hide, hbName
+		GuiControl, Hide, hbText
 		GuiControl, Hide, hbURL
+		GuiControl, Hide, DhbURL
+		GuiControl, Hide, DeadHBWebhookURL
 	}
 return
 
@@ -346,6 +365,7 @@ Start:
 	IniWrite, %heartBeat%, Settings.ini, UserSettings, heartBeat
 	IniWrite, %heartBeatWebhookURL%, Settings.ini, UserSettings, heartBeatWebhookURL
 	IniWrite, %heartBeatName%, Settings.ini, UserSettings, heartBeatName
+	IniWrite, %DeadHBWebhookURL%, Settings.ini, UserSettings, DeadHBWebhookURL
 	IniWrite, %nukeAccount%, Settings.ini, UserSettings, nukeAccount
 	IniWrite, %packMethod%, Settings.ini, UserSettings, packMethod
 	IniWrite, %TrainerCheck%, Settings.ini, UserSettings, TrainerCheck
@@ -438,7 +458,7 @@ Start:
 				if(onlineAHK = "Online: ")
 					onlineAHK := "Online: none."
 
-				discMessage := "\n" . onlineAHK . "\n" . offlineAHK . "\n" . packStatus
+				discMessage := "\n" . onlineAHK . "\n" . offlineAHK . "\n" . packStatus . "\nVer. Rocket_6.3.9"
 				if(heartBeatName)
 					discordUserID := heartBeatName
 				LogToDiscord(discMessage, , discordUserID)
@@ -685,105 +705,6 @@ KillADBProcesses() {
 	Process, Close, adb.exe
 	; Fallback to taskkill for robustness
 	RunWait, %ComSpec% /c taskkill /IM adb.exe /F /T,, Hide
-}
-
-CheckForUpdate() {
-	global githubUser, repoName, localVersion, zipPath, extractPath, scriptFolder
-	url := "https://api.github.com/repos/" githubUser "/" repoName "/releases/latest"
-
-	response := HttpGet(url)
-	if !response
-	{
-		MsgBox, Failed to fetch release info.
-		return
-	}
-	latestReleaseBody := FixFormat(ExtractJSONValue(response, "body"))
-	latestVersion := ExtractJSONValue(response, "tag_name")
-	zipDownloadURL := ExtractJSONValue(response, "zipball_url")
-	Clipboard := latestReleaseBody
-	if (zipDownloadURL = "" || !InStr(zipDownloadURL, "http"))
-	{
-		MsgBox, Failed to find the ZIP download URL in the release.
-		return
-	}
-
-	if (latestVersion = "")
-	{
-		MsgBox, Failed to retrieve version info.
-		return
-	}
-
-	if (VersionCompare(latestVersion, localVersion) > 0)
-	{
-		; Get release notes from the JSON (ensure this is populated earlier in the script)
-		releaseNotes := latestReleaseBody  ; Assuming `latestReleaseBody` contains the release notes
-
-		; Show a message box asking if the user wants to download
-		MsgBox, 4, Update Available %latestVersion%, %releaseNotes%`n`nDo you want to download the latest version?
-
-		; If the user clicks Yes (return value 6)
-		IfMsgBox, Yes
-		{
-			MsgBox, 64, Downloading..., Downloading the latest version...
-
-			; Proceed with downloading the update
-			URLDownloadToFile, %zipDownloadURL%, %zipPath%
-			if ErrorLevel
-			{
-				MsgBox, Failed to download update.
-				return
-			}
-			else {
-				MsgBox, Download complete. Extracting...
-
-				; Create a temporary folder for extraction
-				tempExtractPath := A_Temp "\PTCGPB_Temp"
-				FileCreateDir, %tempExtractPath%
-
-				; Extract the ZIP file into the temporary folder
-				RunWait, powershell -Command "Expand-Archive -Path '%zipPath%' -DestinationPath '%tempExtractPath%' -Force",, Hide
-
-				; Check if extraction was successful
-				if !FileExist(tempExtractPath)
-				{
-					MsgBox, Failed to extract the update.
-					return
-				}
-
-				; Get the first subfolder in the extracted folder
-				Loop, Files, %tempExtractPath%\*, D
-				{
-					extractedFolder := A_LoopFileFullPath
-					break
-				}
-
-				; Check if a subfolder was found and move its contents recursively to the script folder
-				if (extractedFolder)
-				{
-					MoveFilesRecursively(extractedFolder, scriptFolder)
-
-					; Clean up the temporary extraction folder
-					FileRemoveDir, %tempExtractPath%, 1
-					MsgBox, Update installed. Restarting...
-					Reload
-				}
-				else
-				{
-					MsgBox, Failed to find the extracted contents.
-					return
-				}
-			}
-		}
-		else
-		{
-			MsgBox, The update was canceled.
-			return
-		}
-	}
-	else
-	{
-		MsgBox, You are running the latest version (%localVersion%).
-	}
 }
 
 MoveFilesRecursively(srcFolder, destFolder) {

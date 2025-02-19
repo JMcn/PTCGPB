@@ -14,7 +14,7 @@ CoordMode, Pixel, Screen
 DllCall("AllocConsole")
 WinHide % "ahk_id " DllCall("GetConsoleWindow", "ptr")
 
-global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, adbPort, scriptName, adbShell, adbPath, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack, scaleParam, discordUserId, discordWebhookURL, skipInvalidGP, deleteXML, packs, FriendID, AddFriend, Instances, showStatus
+global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, adbPort, scriptName, adbShell, adbPath, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack, scaleParam, discordUserId, DeadHBWebhookURL, skipInvalidGP, deleteXML, packs, FriendID, AddFriend, Instances, showStatus
 
 deleteAccount := false
 scriptName := StrReplace(A_ScriptName, ".ahk")
@@ -31,11 +31,12 @@ IniRead, Columns, %A_ScriptDir%\..\Settings.ini, UserSettings, Columns, 5
 IniRead, openPack, %A_ScriptDir%\..\Settings.ini, UserSettings, openPack, 1
 IniRead, setSpeed, %A_ScriptDir%\..\Settings.ini, UserSettings, setSpeed, 2x
 IniRead, defaultLanguage, %A_ScriptDir%\..\Settings.ini, UserSettings, defaultLanguage, Scale125
+IniRead, MainLanguage, %A_ScriptDir%\..\Settings.ini, UserSettings, MainLanguage, Chinese
 IniRead, SelectedMonitorIndex, %A_ScriptDir%\..\Settings.ini, UserSettings, SelectedMonitorIndex, 1:
 IniRead, swipeSpeed, %A_ScriptDir%\..\Settings.ini, UserSettings, swipeSpeed, 350
 IniRead, skipInvalidGP, %A_ScriptDir%\..\Settings.ini, UserSettings, skipInvalidGP, No
 IniRead, godPack, %A_ScriptDir%\..\Settings.ini, UserSettings, godPack, Continue
-IniRead, discordWebhookURL, %A_ScriptDir%\..\Settings.ini, UserSettings, discordWebhookURL, ""
+IniRead, DeadHBWebhookURL, %A_ScriptDir%\..\Settings.ini, UserSettings, DeadHBWebhookURL, ""
 IniRead, discordUserId, %A_ScriptDir%\..\Settings.ini, UserSettings, discordUserId, ""
 IniRead, deleteMethod, %A_ScriptDir%\..\Settings.ini, UserSettings, deleteMethod, Hoard
 IniRead, sendXML, %A_ScriptDir%\..\Settings.ini, UserSettings, sendXML, 0
@@ -71,6 +72,18 @@ if (InStr(defaultLanguage, "100")) {
 	scaleParam := 277
 }
 
+langCode := "99_zh"  ; Default value
+langCode_cor := [62, 111, 106, 127]
+if (!MainLanguage){
+	langCode := "99_zh"
+	langCode_cor := [62, 111, 106, 127]
+}else if (MainLanguage = "English"){
+	langCode := "99_eng"
+	langCode_cor := [123, 110, 162, 127]
+}else if (MainLanguage = "Doods"){
+	langCode := "99_Doods"
+	langCode_cor := [88, 113, 119, 124]
+}
 resetWindows()
 MaxRetries := 10
 RetryCount := 0
@@ -139,17 +152,19 @@ Loop {
 			failSafeTime := 0
 			Loop {
 				Sleep, %Delay%
-				clickButton := FindOrLoseImage(75, 340, 195, 530, 80, "Button", 0, failSafeTime) ;looking for ok button in case an invite is withdrawn
-				if(FindOrLoseImage(123, 110, 162, 127, , "99", 0, failSafeTime)) {
+				clickButton := FindOrLoseImage(75, 340, 195, 530, 80, "Button", 0) ;looking for ok button in case an invite is withdrawn
+				if(FindOrLoseImage(langCode_cor[1], langCode_cor[2], langCode_cor[3], langCode_cor[4], , langCode, 0)) {
 					done := true
 					break
-				} else if(FindOrLoseImage(80, 170, 120, 195, , "player", 0, failSafeTime)) {
-					Sleep, %Delay%
+				} else if(FindOrLoseImage(80, 170, 120, 195, , "player", 0)) {
+					Sleep, 500
 					adbClick(210, 210)
 					Sleep, 1000
-				} else if(FindOrLoseImage(225, 195, 250, 220, , "Pending", 0, failSafeTime)) {
+				} else if(FindOrLoseImage(225, 195, 250, 220, , "Pending", 0)) {
 					adbClick(245, 210)
-				} else if(FindOrLoseImage(186, 496, 206, 518, , "Accept", 0, failSafeTime)) {
+					Sleep, 500
+					clickButton := FindOrLoseImage(75, 340, 195, 530, 80, "Button", 0)
+				} else if(FindOrLoseImage(186, 496, 206, 518, , "Accept", 0)) {
 					done := true
 					break
 				} else if(clickButton) {
@@ -226,7 +241,7 @@ FindOrLoseImage(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT", E
 		FSTime := 180
 	if (safeTime >= FSTime) {
 		CreateStatusMessage("Instance " . scriptName . " has been `nstuck " . imageName . " for 90s. EL: " . EL . " sT: " . safeTime . " Killing it...")
-		restartGameInstance("Instance " . scriptName . " has been stuck " . imageName)
+		restartGameInstance("Instance " . scriptName . " has been stuck " . imageName . "\nVersion:Rocket_6.3.9")
 		failSafe := A_TickCount
 	}
 	return confirmed
@@ -304,7 +319,7 @@ FindImageAndClick(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT",
 				FSTime := 45
 				if (ElapsedTime >= FSTime || safeTime >= FSTime) {
 					CreateStatusMessage("Instance " . scriptName . " has been stuck for 90s. Killing it...")
-					restartGameInstance("Instance " . scriptName . " has been stuck at " . imageName) ; change to reset the instance and delete data then reload script
+					restartGameInstance("Instance " . scriptName . " has been stuck at " . imageName . "\nVersion:Rocket_6.3.9") ; change to reset the instance and delete data then reload script
 					StartSkipTime := A_TickCount
 					failSafe := A_TickCount
 				}
@@ -521,8 +536,8 @@ Screenshot(filename := "Valid") {
 }
 
 LogToDiscord(message, screenshotFile := "", ping := false, xmlFile := "") {
-	global discordUserId, discordWebhookURL, sendXML
-	if (discordWebhookURL != "") {
+	global discordUserId, DeadHBWebhookURL, sendXML
+	if (DeadHBWebhookURL != "") {
 		MaxRetries := 10
 		RetryCount := 0
 		Loop {
@@ -536,7 +551,7 @@ LogToDiscord(message, screenshotFile := "", ping := false, xmlFile := "") {
 
 				; Create the HTTP request object
 				whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
-				whr.Open("POST", discordWebhookURL, false)
+				whr.Open("POST", DeadHBWebhookURL, false)
 				whr.SetRequestHeader("Content-Type", "application/json")
 				whr.Send(data)
 
@@ -545,14 +560,14 @@ LogToDiscord(message, screenshotFile := "", ping := false, xmlFile := "") {
 					; Check if the file exists
 					if (FileExist(screenshotFile)) {
 						; Send the image using curl
-						RunWait, curl -k -F "file=@%screenshotFile%" %discordWebhookURL%,, Hide
+						RunWait, curl -k -F "file=@%screenshotFile%" %DeadHBWebhookURL%,, Hide
 					}
 				}
 				if (xmlFile != "" && sendXML > 0) {
 					; Check if the file exists
 					if (FileExist(xmlFile)) {
 						; Send the image using curl
-						RunWait, curl -k -F "file=@%xmlFile%" %discordWebhookURL%,, Hide
+						RunWait, curl -k -F "file=@%xmlFile%" %DeadHBWebhookURL%,, Hide
 					}
 				}
 				break

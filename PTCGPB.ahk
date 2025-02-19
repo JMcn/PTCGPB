@@ -327,6 +327,7 @@ Start:
 	IniWrite, %SelectedMonitorIndex%, Settings.ini, UserSettings, SelectedMonitorIndex
 	IniWrite, %swipeSpeed%, Settings.ini, UserSettings, swipeSpeed
 	IniWrite, %deleteMethod%, Settings.ini, UserSettings, deleteMethod
+	IniWrite, %MainLanguage%, Settings.ini, UserSettings, MainLanguage
 	IniWrite, %runMain%, Settings.ini, UserSettings, runMain
 	IniWrite, %heartBeat%, Settings.ini, UserSettings, heartBeat
 	IniWrite, %heartBeatWebhookURL%, Settings.ini, UserSettings, heartBeatWebhookURL

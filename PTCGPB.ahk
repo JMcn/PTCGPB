@@ -103,6 +103,7 @@ Gui, Add, Edit, vminStars w25 x90 y135 h18, %minStars%
 
 Gui, Add, Text, x10 y160, Method:
 Gui, Add, Text, x130 y160, Language:
+Gui, Add, Text, x130 y178, (Main account)
 Gui, Add, Picture, x450 y340 w30 h30, %A_ScriptDir%\logs\dino.png
 
 ; Pack selection logic
@@ -142,7 +143,6 @@ if(StrLen(discordWebhookURL) < 3)
 Gui, Add, Text, x10 y225, Discord Settings:
 Gui, Add, Text, x30 y245, Discord ID:
 Gui, Add, Edit, vdiscordUserId w100 x90 y240 h18, %discordUserId%
-Gui, Add, Text, x190 y245, (Main account)
 Gui, Add, Text, x30 y270, Discord Webhook URL:
 Gui, Add, Edit, vdiscordWebhookURL h20 w100 x150 y265 h18, %discordWebhookURL%
 

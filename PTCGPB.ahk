@@ -17,7 +17,7 @@ if not A_IsAdmin
 	ExitApp
 }
 
-KillADBProcesses()
+;KillADBProcesses()
 
 global Instances, jsonFileName, PacksText, runMain, scaleParam
 
@@ -57,7 +57,7 @@ IniRead, SelectedMonitorIndex, Settings.ini, UserSettings, SelectedMonitorIndex,
 IniRead, swipeSpeed, Settings.ini, UserSettings, swipeSpeed, 300
 IniRead, deleteMethod, Settings.ini, UserSettings, deleteMethod, 3 Pack
 IniRead, runMain, Settings.ini, UserSettings, runMain, 1
-IniRead, heartBeat, Settings.ini, UserSettings, heartBeat, 0
+IniRead, heartBeat, Settings.ini, UserSettings, heartBeat, 1
 IniRead, heartBeatWebhookURL, Settings.ini, UserSettings, heartBeatWebhookURL, ""
 IniRead, heartBeatName, Settings.ini, UserSettings, heartBeatName, ""
 IniRead, DeadHBWebhookURL, Settings.ini, UserSettings, DeadHBWebhookURL, ""
@@ -154,6 +154,7 @@ if(StrLen(heartBeatWebhookURL) < 3)
 if(StrLen(DeadHBWebhookURL) < 3)
 	DeadHBWebhookURL =
 
+Gui, Add, Text, x10 y295, Discord Heartbeat:
 Gui, Add, Text, vhbName x30 y315, Name:
 Gui, Add, Edit, vheartBeatName w50 x70 y310 h18, %heartBeatName%
 Gui, Add, Text, vhbText x125 y315, (the reroller account name)
@@ -269,7 +270,7 @@ if (defaultLanguage = "Scale125") {
 
 ; Gui, Add, DropDownList, x80 y245 w145 vdefaultLanguage choose%defaultLang%, Scale125
 
-Gui, Show, , %localVersion% PTCGPB Bot Setup [Non-Commercial 4.0 International License] ;'
+Gui, Show, , %localVersion% Rockets PTCGPB Bot Setup [Non-Commercial 4.0 International License] ;'
 Return
 
 deleteSettings:

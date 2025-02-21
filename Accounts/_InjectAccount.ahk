@@ -168,8 +168,6 @@ loadAccount() {
 	adbShell.StdIn.WriteLine("am force-stop jp.pokemon.pokemontcgp")
 
 	loadDir := A_ScriptDir . "\" . fileName
-	if (!FileExist(loadDir))
-		loadDir := A_ScriptDir . "\GodPacks\" . fileName
 
 	RunWait, % adbPath . " -s 127.0.0.1:" . adbPorts . " push """ . loadDir . ".xml""" . " /sdcard/deviceAccount.xml",, Hide
 

@@ -19,7 +19,7 @@ if not A_IsAdmin
 
 ;KillADBProcesses()
 
-global Instances, jsonFileName, PacksText, runMain, scaleParam
+global Instances, jsonFileName, PacksText, runMain, scaleParam, proxy
 
 totalFile := A_ScriptDir . "\json\total.json"
 backupFile := A_ScriptDir . "\json\total-backup.json"
@@ -77,6 +77,7 @@ IniRead, Pikachu, Settings.ini, UserSettings, Pikachu, 0
 IniRead, Charizard, Settings.ini, UserSettings, Charizard, 0
 IniRead, Mewtwo, Settings.ini, UserSettings, Mewtwo, 0
 IniRead, slowMotion, Settings.ini, UserSettings, slowMotion, 0
+IniRead, proxy, Settings.ini, UserSettings, proxy, 0
 
 Gui, Add, Text, x10 y10, Friend ID:
 ; Add input controls
@@ -162,7 +163,6 @@ Gui, Add, Text, vhbURL x30 y340, Webhook URL:
 Gui, Add, Edit, vheartBeatWebhookURL h20 w100 x110 y335 h18, %heartBeatWebhookURL%
 Gui, Add, Text, vDhbURL x30 y365, DeadHBWebhook URL:
 Gui, Add, Edit, vDeadHBWebhookURL h20 w100 x130 y360 h18, %DeadHBWebhookURL%
-
 
 Gui, Add, Text, x275 y10, Choose Pack(s):
 
@@ -452,7 +452,7 @@ IsLeapYear(year) {
 }
 
 LogToDiscord(message, screenshotFile := "", ping := false, xmlFile := "") {
-	global discordUserId, discordWebhookURL, friendCode, heartBeatWebhookURL
+	global discordUserId, discordWebhookURL, friendCode, heartBeatWebhookURL, proxy
 	discordPing := discordUserId
 	if(heartBeatWebhookURL)
 		discordWebhookURL := heartBeatWebhookURL
@@ -467,14 +467,26 @@ LogToDiscord(message, screenshotFile := "", ping := false, xmlFile := "") {
 					; Check if the file exists
 					if (FileExist(screenshotFile)) {
 						; Send the image using curl
-						curlCommand := "curl -k "
-							. "-F ""payload_json={\""content\"":\""" . discordPing . message . "\""};type=application/json;charset=UTF-8"" " . discordWebhookURL
+						if(proxy = 0) {
+							curlCommand := "curl -k "
+								. "-F ""payload_json={\""content\"":\""" . discordPing . message . "\""};type=application/json;charset=UTF-8"" " . discordWebhookURL
+						}
+						else {
+							curlCommand := "curl -x " . proxy . " -k "
+								. "-F ""payload_json={\""content\"":\""" . discordPing . message . "\""};type=application/json;charset=UTF-8"" " . discordWebhookURL
+						}
 						RunWait, %curlCommand%,, Hide
 					}
 				}
 				else {
-					curlCommand := "curl -k "
-						. "-F ""payload_json={\""content\"":\""" . discordPing . message . "\""};type=application/json;charset=UTF-8"" " . discordWebhookURL
+					if(proxy = 0) {
+						curlCommand := "curl -k "
+							. "-F ""payload_json={\""content\"":\""" . discordPing . message . "\""};type=application/json;charset=UTF-8"" " . discordWebhookURL
+					}
+					else {
+						curlCommand := "curl -x " . proxy . " -k "
+							. "-F ""payload_json={\""content\"":\""" . discordPing . message . "\""};type=application/json;charset=UTF-8"" " . discordWebhookURL
+					}
 					RunWait, %curlCommand%,, Hide
 				}
 				break
@@ -493,16 +505,26 @@ LogToDiscord(message, screenshotFile := "", ping := false, xmlFile := "") {
 }
 
 DownloadFile(url, filename) {
+	global proxy
 	url := url  ; Change to your hosted .txt URL "https://pastebin.com/raw/vYxsiqSs"
-	localPath = %A_ScriptDir%\%filename% ; Change to the folder you want to save the file
-
-	URLDownloadToFile, %url%, %localPath%
-
-	; if ErrorLevel
-	; MsgBox, Download failed!
-	; else
-	; MsgBox, File downloaded successfully!
-
+	localPath = %filename% ; Change to the folder you want to save the file
+	errored := false
+	try {
+		whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
+		whr.Open("GET", url, true)
+		if(proxy != 0){
+			whr.SetProxy(2, proxy)
+		}
+		whr.Send()
+		whr.WaitForResponse()
+		ids := whr.ResponseText
+	} catch {
+		errored := true
+	}
+	if(!errored) {
+		FileDelete, %localPath%
+		FileAppend, %ids%, %localPath%
+	}
 }
 
 resetWindows(Title, SelectedMonitorIndex){

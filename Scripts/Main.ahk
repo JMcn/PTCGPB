@@ -14,7 +14,7 @@ CoordMode, Pixel, Screen
 DllCall("AllocConsole")
 WinHide % "ahk_id " DllCall("GetConsoleWindow", "ptr")
 
-global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, adbPort, scriptName, adbShell, adbPath, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack, scaleParam, discordUserId, DeadHBWebhookURL, skipInvalidGP, deleteXML, packs, FriendID, AddFriend, Instances, showStatus
+global winTitle, changeDate, failSafe, openPack, Delay, failSafeTime, StartSkipTime, Columns, failSafe, adbPort, scriptName, adbShell, adbPath, GPTest, StatusText, defaultLanguage, setSpeed, jsonFileName, pauseToggle, SelectedMonitorIndex, swipeSpeed, godPack, scaleParam, discordUserId, DeadHBWebhookURL, skipInvalidGP, deleteXML, packs, FriendID, AddFriend, Instances, showStatus, proxy
 
 deleteAccount := false
 scriptName := StrReplace(A_ScriptName, ".ahk")
@@ -41,6 +41,7 @@ IniRead, discordUserId, %A_ScriptDir%\..\Settings.ini, UserSettings, discordUser
 IniRead, deleteMethod, %A_ScriptDir%\..\Settings.ini, UserSettings, deleteMethod, Hoard
 IniRead, sendXML, %A_ScriptDir%\..\Settings.ini, UserSettings, sendXML, 0
 IniRead, heartBeat, %A_ScriptDir%\..\Settings.ini, UserSettings, heartBeat, 1
+IniRead, proxy, %A_ScriptDir%\..\Settings.ini, UserSettings, proxy, 0
 if(heartBeat)
 	IniWrite, 1, %A_ScriptDir%\..\HeartBeat.ini, HeartBeat, Main
 
@@ -536,7 +537,7 @@ Screenshot(filename := "Valid") {
 }
 
 LogToDiscord(message, screenshotFile := "", ping := false, xmlFile := "") {
-	global discordUserId, DeadHBWebhookURL, sendXML
+	global discordUserId, DeadHBWebhookURL, sendXML, proxy
 	if (DeadHBWebhookURL != "") {
 		MaxRetries := 10
 		RetryCount := 0
@@ -552,6 +553,9 @@ LogToDiscord(message, screenshotFile := "", ping := false, xmlFile := "") {
 				; Create the HTTP request object
 				whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
 				whr.Open("POST", DeadHBWebhookURL, false)
+				if(proxy != 0){
+					whr.SetProxy(2, proxy)
+				}
 				whr.SetRequestHeader("Content-Type", "application/json")
 				whr.Send(data)
 

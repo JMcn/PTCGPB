@@ -131,10 +131,14 @@ if(heartBeat)
 	IniWrite, 1, %A_ScriptDir%\..\HeartBeat.ini, HeartBeat, Main2
 FindImageAndClick(120, 500, 155, 530, , "Social", 143, 518, 1000, 150)
 firstRun := true
+No_friend_last_time := A_TickCount
+timeDiff := 0
+
 Loop {
 	if(heartBeat)
 		IniWrite, 1, %A_ScriptDir%\..\HeartBeat.ini, HeartBeat, Main2
 	Sleep, %Delay%
+	Check_button()
 	FindImageAndClick(120, 500, 155, 530, , "Social", 143, 518, 1000, 30)
 	FindImageAndClick(226, 100, 270, 135, , "Add", 38, 460, 500)
 	FindImageAndClick(170, 450, 195, 480, , "Approve", 228, 464)
@@ -153,31 +157,35 @@ Loop {
 			failSafeTime := 0
 			Loop {
 				Sleep, %Delay%
-				clickButton := FindOrLoseImage(75, 340, 195, 530, 80, "Button", 0) ;looking for ok button in case an invite is withdrawn
+				Check_button()
 				if(FindOrLoseImage(langCode_cor[1], langCode_cor[2], langCode_cor[3], langCode_cor[4], , langCode, 0)) {
-					done := true
-					break
+					if (ToggleModeOn99()){
+						done := true
+						break
+					}
 				} else if(FindOrLoseImage(80, 170, 120, 195, , "player", 0)) {
-					Sleep, 500
+					Sleep, 250
 					adbClick(210, 210)
-					Sleep, 1000
+					Sleep, 1500
 				} else if(FindOrLoseImage(225, 195, 250, 220, , "Pending", 0)) {
 					adbClick(245, 210)
-					Sleep, 500
-					clickButton := FindOrLoseImage(75, 340, 195, 530, 80, "Button", 0)
+					Check_button()
 				} else if(FindOrLoseImage(186, 496, 206, 518, , "Accept", 0)) {
 					done := true
 					break
-				} else if(clickButton) {
-					StringSplit, pos, clickButton, `,  ; Split at ", "
-					Sleep, 1000
-					if(FindImageAndClick(190, 195, 215, 220, , "DeleteFriend", pos1, pos2, 4000)) {
-						Sleep, %Delay%
-						adbClick(210, 210)
-					}
 				}
+
+				timeDiff := (A_TickCount - No_friend_last_time)// 1000
+				if(FindOrLoseImage(209, 400, 219, 410, , "No_friend", 0)){
+					No_friend_last_time := A_TickCount
+				}
+				CreateStatusMessage("timeDiff: " . timeDiff)
+
 				failSafeTime := (A_TickCount - failSafe) // 1000
-				CreateStatusMessage("Failsafe " . failSafeTime "/180 seconds")
+				if(failSafeTime > 300) { ;prevent instance crash
+					done := true
+					break
+				}
 			}
 		}
 		if(done || fullList)
@@ -185,6 +193,32 @@ Loop {
 	}
 }
 return
+
+Check_button(){
+	Sleep, 500
+	if(FindOrLoseImage(75, 340, 195, 530, 80, "Button", 0)) {
+		Loop{
+			if(FindImageAndClick(190, 195, 215, 220, , "DeleteFriend", 149, 372, 1500)) {
+				Sleep, %Delay%
+				adbClick(210, 210)
+				break
+			}
+		}
+	}
+}
+
+ToggleModeOn99(){
+	global timeDiff
+	if(FindOrLoseImage(209, 400, 219, 410, , "No_friend", 0)){
+		return 1
+	}else if(timeDiff >= 40){
+		adbClick(209, 400) ;reject third friend
+		Sleep, 1000
+		return 0
+	}else{
+		return 1
+	}
+}
 
 FindOrLoseImage(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT", EL := 1, safeTime := 0) {
 	global winTitle, Variation, failSafe
@@ -410,8 +444,9 @@ restartGameInstance(reason, RL := true){
 
 	Sleep, 3000
 	if(RL) {
+		screenShot := Screenshot()
 		LogToFile("Restarted game for instance " scriptName " Reason: " reason, "Restart.txt")
-		LogToDiscord("Restarted game for instance " scriptName " Reason: " reason, , discordUserId)
+		LogToDiscord("Restarted game for instance " scriptName " Reason: " reason, screenShot, discordUserId)
 		Reload
 	}
 }
@@ -537,7 +572,7 @@ Screenshot(filename := "Valid") {
 }
 
 LogToDiscord(message, screenshotFile := "", ping := false, xmlFile := "") {
-	global discordUserId, DeadHBWebhookURL, sendXML
+	global discordUserId, DeadHBWebhookURL, sendXML, proxy
 	if (DeadHBWebhookURL != "") {
 		MaxRetries := 10
 		RetryCount := 0

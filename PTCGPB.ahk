@@ -1,3 +1,4 @@
+#Include %A_ScriptDir%\Scripts\Include\Gdip_All.ahk
 version = Rockets PTCGP Bot
 #SingleInstance, force
 CoordMode, Mouse, Screen
@@ -19,7 +20,7 @@ if not A_IsAdmin
 
 ;KillADBProcesses()
 
-global Instances, jsonFileName, PacksText, runMain, scaleParam, proxy
+global Instances, jsonFileName, PacksText, runMain, scaleParam, proxy, screenshotName
 
 totalFile := A_ScriptDir . "\json\total.json"
 backupFile := A_ScriptDir . "\json\total-backup.json"
@@ -39,6 +40,7 @@ if FileExist(packsFile) ; Check if the file exists
 		MsgBox, Failed to create %backupFile%. Ensure permissions and paths are correct.
 }
 InitializeJsonFile() ; Create or open the JSON file
+pToken := Gdip_Startup()
 global FriendID
 
 ; Create the main GUI for selecting number of instances
@@ -78,6 +80,7 @@ IniRead, Charizard, Settings.ini, UserSettings, Charizard, 0
 IniRead, Mewtwo, Settings.ini, UserSettings, Mewtwo, 0
 IniRead, slowMotion, Settings.ini, UserSettings, slowMotion, 0
 IniRead, proxy, Settings.ini, UserSettings, proxy, 0
+IniRead, checkHBWebhookURL, Settings.ini, UserSettings, checkHBWebhookURL, 0
 
 Gui, Add, Text, x10 y10, Friend ID:
 ; Add input controls
@@ -403,6 +406,12 @@ Start:
 					IniWrite, 0, HeartBeat.ini, HeartBeat, Main
 				}
 				Loop %Instances% {
+					screenShot := Screenshot(A_Index)
+					if(checkHBWebhookURL != 0) {
+						if(heartBeatName)
+							discordUserID := heartBeatName
+						LogToDiscord("\n" . screenshotName, screenShot, discordUserId, , true)
+					}
 					IniRead, value, HeartBeat.ini, HeartBeat, Instance%A_Index%
 					if(value)
 						Online.push(1)
@@ -451,11 +460,13 @@ IsLeapYear(year) {
 	return (Mod(year, 4) = 0 && Mod(year, 100) != 0) || Mod(year, 400) = 0
 }
 
-LogToDiscord(message, screenshotFile := "", ping := false, xmlFile := "") {
-	global discordUserId, discordWebhookURL, friendCode, heartBeatWebhookURL, proxy
+LogToDiscord(message, screenshotFile := "", ping := false, xmlFile := "", checkHB := false) {
+	global discordUserId, discordWebhookURL, friendCode, heartBeatWebhookURL, proxy, checkHBWebhookURL
 	discordPing := discordUserId
 	if(heartBeatWebhookURL)
 		discordWebhookURL := heartBeatWebhookURL
+	if(checkHB)
+		discordWebhookURL := checkHBWebhookURL
 
 	if (discordWebhookURL != "") {
 		MaxRetries := 10
@@ -469,11 +480,15 @@ LogToDiscord(message, screenshotFile := "", ping := false, xmlFile := "") {
 						; Send the image using curl
 						if(proxy = 0) {
 							curlCommand := "curl -k "
-								. "-F ""payload_json={\""content\"":\""" . discordPing . message . "\""};type=application/json;charset=UTF-8"" " . discordWebhookURL
+							. "-F ""payload_json={\""content\"":\""" . discordPing . message . "\""};type=application/json;charset=UTF-8"" "
+							. "-F ""file=@" . screenshotFile . """ "
+							. discordWebhookURL
 						}
 						else {
 							curlCommand := "curl -x " . proxy . " -k "
-								. "-F ""payload_json={\""content\"":\""" . discordPing . message . "\""};type=application/json;charset=UTF-8"" " . discordWebhookURL
+							. "-F ""payload_json={\""content\"":\""" . discordPing . message . "\""};type=application/json;charset=UTF-8"" "
+							. "-F ""file=@" . screenshotFile . """ "
+							. discordWebhookURL
 						}
 						RunWait, %curlCommand%,, Hide
 					}
@@ -803,6 +818,68 @@ VersionCompare(v1, v2) {
 		return 1 ; Alpha version is older
 
 	return 0 ; Versions are equal
+}
+
+Screenshot(winTitle := 1) {
+	global screenshotName
+	SetWorkingDir %A_ScriptDir%  ; Ensures the working directory is the script's directory
+	; Define folder and file paths
+	screenshotsDir := A_ScriptDir "\Screenshots\check"
+	if !FileExist(screenshotsDir)
+		FileCreateDir, %screenshotsDir%
+
+	; File path for saving the screenshot locally
+	screenshotName := A_Now . "_" . winTitle . "_check.png"
+	screenshotFile := screenshotsDir "\" . screenshotName
+
+	pBitmap := from_window(WinExist(winTitle))
+	Gdip_SaveBitmapToFile(pBitmap, screenshotFile)
+
+	return screenshotFile
+}
+
+from_window(ByRef image) {
+	; Thanks tic - https://www.autohotkey.com/boards/viewtopic.php?t=6517
+
+	; Get the handle to the window.
+	image := (hwnd := WinExist(image)) ? hwnd : image
+
+	; Restore the window if minimized! Must be visible for capture.
+	if DllCall("IsIconic", "ptr", image)
+		DllCall("ShowWindow", "ptr", image, "int", 4)
+
+	; Get the width and height of the client window.
+	VarSetCapacity(Rect, 16) ; sizeof(RECT) = 16
+	DllCall("GetClientRect", "ptr", image, "ptr", &Rect)
+		, width  := NumGet(Rect, 8, "int")
+		, height := NumGet(Rect, 12, "int")
+
+	; struct BITMAPINFOHEADER - https://docs.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-bitmapinfoheader
+	hdc := DllCall("CreateCompatibleDC", "ptr", 0, "ptr")
+	VarSetCapacity(bi, 40, 0)                ; sizeof(bi) = 40
+		, NumPut(       40, bi,  0,   "uint") ; Size
+		, NumPut(    width, bi,  4,   "uint") ; Width
+		, NumPut(  -height, bi,  8,    "int") ; Height - Negative so (0, 0) is top-left.
+		, NumPut(        1, bi, 12, "ushort") ; Planes
+		, NumPut(       32, bi, 14, "ushort") ; BitCount / BitsPerPixel
+		, NumPut(        0, bi, 16,   "uint") ; Compression = BI_RGB
+		, NumPut(        3, bi, 20,   "uint") ; Quality setting (3 = low quality, no anti-aliasing)
+	hbm := DllCall("CreateDIBSection", "ptr", hdc, "ptr", &bi, "uint", 0, "ptr*", pBits:=0, "ptr", 0, "uint", 0, "ptr")
+	obm := DllCall("SelectObject", "ptr", hdc, "ptr", hbm, "ptr")
+
+	; Print the window onto the hBitmap using an undocumented flag. https://stackoverflow.com/a/40042587
+	DllCall("PrintWindow", "ptr", image, "ptr", hdc, "uint", 0x3) ; PW_CLIENTONLY | PW_RENDERFULLCONTENT
+	; Additional info on how this is implemented: https://www.reddit.com/r/windows/comments/8ffr56/altprintscreen/
+
+	; Convert the hBitmap to a Bitmap using a built in function as there is no transparency.
+	DllCall("gdiplus\GdipCreateBitmapFromHBITMAP", "ptr", hbm, "ptr", 0, "ptr*", pBitmap:=0)
+
+	; Cleanup the hBitmap and device contexts.
+	DllCall("SelectObject", "ptr", hdc, "ptr", obm)
+	DllCall("DeleteObject", "ptr", hbm)
+	DllCall("DeleteDC",	 "ptr", hdc)
+
+	return pBitmap
 }
 
 ~+F7::ExitApp

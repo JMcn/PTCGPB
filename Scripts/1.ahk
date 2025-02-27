@@ -251,7 +251,11 @@ if(DeadCheck==1) {
 			HourglassOpening() ;deletemethod check in here at the start
 
 		if(wonderPicked) {
-			friendsAdded := AddFriends(true)
+			;friendsAdded := AddFriends(true)
+			;5 Pack, don't delete friends
+			FindImageAndClick(120, 500, 155, 530, , "Social", 143, 518, 500)
+			FindImageAndClick(20, 500, 55, 530, , "Home", 40, 516, 500)
+
 			SelectPack("HGPack")
 			PackOpening()
 			if(packMethod) {
@@ -1292,8 +1296,10 @@ FindGodPack() {
 	}
 	borderCoords := [[20, 284, 90, 286]
 		,[103, 284, 173, 286]]
-	if(packs = 3)
-		packs := 0
+	if(deleteMethod != "5 Pack") {
+		if(packs = 3)
+			packs := 0
+  }
 	Loop {
 		normalBorders := false
 		pBitmap := from_window(WinExist(winTitle))

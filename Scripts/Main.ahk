@@ -276,7 +276,7 @@ FindOrLoseImage(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT", E
 		FSTime := 180
 	if (safeTime >= FSTime) {
 		CreateStatusMessage("Instance " . scriptName . " has been `nstuck " . imageName . " for 90s. EL: " . EL . " sT: " . safeTime . " Killing it...")
-		restartGameInstance("Instance " . scriptName . " has been stuck " . imageName . "\nVersion:Rocket_6.3.9")
+		restartGameInstance("Instance " . scriptName . " has been stuck " . imageName . "\nVersion:Rocket_6.3.9.1")
 		failSafe := A_TickCount
 	}
 	return confirmed
@@ -354,7 +354,7 @@ FindImageAndClick(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT",
 				FSTime := 45
 				if (ElapsedTime >= FSTime || safeTime >= FSTime) {
 					CreateStatusMessage("Instance " . scriptName . " has been stuck for 90s. Killing it...")
-					restartGameInstance("Instance " . scriptName . " has been stuck at " . imageName . "\nVersion:Rocket_6.3.9") ; change to reset the instance and delete data then reload script
+					restartGameInstance("Instance " . scriptName . " has been stuck at " . imageName . "\nVersion:Rocket_6.3.9.1") ; change to reset the instance and delete data then reload script
 					StartSkipTime := A_TickCount
 					failSafe := A_TickCount
 				}
@@ -444,7 +444,7 @@ restartGameInstance(reason, RL := true){
 
 	Sleep, 3000
 	if(RL) {
-		screenShot := Screenshot()
+		screenShot := Screenshot("Restart")
 		LogToFile("Restarted game for instance " scriptName " Reason: " reason, "Restart.txt")
 		LogToDiscord("Restarted game for instance " scriptName " Reason: " reason, screenShot, discordUserId)
 		Reload
@@ -599,14 +599,24 @@ LogToDiscord(message, screenshotFile := "", ping := false, xmlFile := "") {
 					; Check if the file exists
 					if (FileExist(screenshotFile)) {
 						; Send the image using curl
-						RunWait, curl -k -F "file=@%screenshotFile%" %DeadHBWebhookURL%,, Hide
+						if(proxy = 0) {
+							RunWait, curl -k -F "file=@%screenshotFile%" %DeadHBWebhookURL%,, Hide
+						}
+						else{
+							RunWait, curl -k -x %proxy% -F "file=@%screenshotFile%" %DeadHBWebhookURL%,, Hide
+						}
 					}
 				}
 				if (xmlFile != "" && sendXML > 0) {
 					; Check if the file exists
 					if (FileExist(xmlFile)) {
 						; Send the image using curl
-						RunWait, curl -k -F "file=@%xmlFile%" %DeadHBWebhookURL%,, Hide
+						if(proxy = 0) {
+							RunWait, curl -k -F "file=@%xmlFile%" %DeadHBWebhookURL%,, Hide
+						}
+						else{
+							RunWait, curl -k -x %proxy% -F "file=@%xmlFile%" %DeadHBWebhookURL%,, Hide
+						}
 					}
 				}
 				break

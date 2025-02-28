@@ -96,22 +96,22 @@ else
 Gui, Add, Text, x10 y30, Rerolling Instances:
 Gui, Add, Text, x30 y50, Instances:
 Gui, Add, Edit, vInstances w25 x90 y45 h18, %Instances%
-Gui, Add, Text, x30 y72, Start Delay:
-Gui, Add, Edit, vinstanceStartDelay w25 x90 y67 h18, %instanceStartDelay%
-Gui, Add, Text, x30 y95, Columns:
-Gui, Add, Edit, vColumns w25 x90 y90 h18, %Columns%
+Gui, Add, Text, x30 y72, Columns:
+Gui, Add, Edit, vColumns w25 x90 y67 h18, %Columns%
+Gui, Add, Text, x130 y72, Start Delay:
+Gui, Add, Edit, vinstanceStartDelay w25 x200 y67 h18, %instanceStartDelay%
 if(runMain)
-	Gui, Add, Checkbox, Checked vrunMain x30 y115, Run Main
+	Gui, Add, Checkbox, Checked vrunMain x30 y95, Run Main
 else
-	Gui, Add, Checkbox, vrunMain x30 y115, Run Main
+	Gui, Add, Checkbox, vrunMain x30 y95, Run Main
 
-Gui, Add, Text, x10 y135, God Pack Settings:
-Gui, Add, Text, x30 y155, Min. 2 Stars:
-Gui, Add, Edit, vminStars w25 x90 y155 h18, %minStars%
+Gui, Add, Text, x10 y120, God Pack Settings:
+Gui, Add, Text, x30 y140, Min. 2 Stars:
+Gui, Add, Edit, vminStars w25 x90 y135 h18, %minStars%
 
 Gui, Add, Text, x10 y160, Method:
 Gui, Add, Text, x130 y160, Language:
-Gui, Add, Text, x130 y178, (Main account)
+Gui, Add, Text, x135 y178, (Main account)
 Gui, Add, Picture, x450 y340 w30 h30, %A_ScriptDir%\logs\dino.png
 
 ; Pack selection logic
@@ -132,27 +132,27 @@ if (MainLanguage = "Chinese") {
 }
 
 Gui, Add, DropDownList, vdeleteMethod gdeleteSettings choose%defaultDelete% x55 y158 w60, 5 Pack|3 Pack|Inject
-Gui, Add, DropDownList, vMainLanguage gdeleteSettings choose%defaultMainLanguage% x185 y158 w60, Chinese|English|Doods
+Gui, Add, DropDownList, vMainLanguage gdeleteSettings choose%defaultMainLanguage% x190 y158 w60, Chinese|English|Doods
 if(packMethod)
-	Gui, Add, Checkbox, Checked vpackMethod x30 y205, 1 Pack Method
+	Gui, Add, Checkbox, Checked vpackMethod x30 y185, 1 Pack Method
 else
-	Gui, Add, Checkbox, vpackMethod x30 y205, 1 Pack Method
+	Gui, Add, Checkbox, vpackMethod x30 y185, 1 Pack Method
 
 if(nukeAccount)
-	Gui, Add, Checkbox, Checked vnukeAccount x30 y225, Menu Delete Account
+	Gui, Add, Checkbox, Checked vnukeAccount x30 y205, Menu Delete Account
 else
-	Gui, Add, Checkbox, vnukeAccount x30 y225, Menu Delete Account
+	Gui, Add, Checkbox, vnukeAccount x30 y205, Menu Delete Account
 
 if(StrLen(discordUserID) < 3)
 	discordUserID =
 if(StrLen(discordWebhookURL) < 3)
 	discordWebhookURL =
 
-Gui, Add, Text, x10 y245, Discord Settings:
-Gui, Add, Text, x30 y265, Discord ID:
-Gui, Add, Edit, vdiscordUserId w100 x90 y260 h18, %discordUserId%
-Gui, Add, Text, x30 y290, Discord Webhook URL:
-Gui, Add, Edit, vdiscordWebhookURL h20 w100 x150 y285 h18, %discordWebhookURL%
+Gui, Add, Text, x10 y225, Discord Settings:
+Gui, Add, Text, x30 y245, Discord ID:
+Gui, Add, Edit, vdiscordUserId w100 x90 y240 h18, %discordUserId%
+Gui, Add, Text, x30 y270, Discord Webhook URL:
+Gui, Add, Edit, vdiscordWebhookURL h20 w100 x150 y265 h18, %discordWebhookURL%
 
 if(StrLen(heartBeatName) < 3)
 	heartBeatName =
@@ -164,11 +164,11 @@ if(StrLen(DeadHBWebhookURL) < 3)
 Gui, Add, Text, x10 y295, Discord Heartbeat:
 Gui, Add, Text, vhbName x30 y315, Name:
 Gui, Add, Edit, vheartBeatName w50 x70 y310 h18, %heartBeatName%
-Gui, Add, Text, vhbText x125 y315, (the reroller account name)
+Gui, Add, Text, vhbText x125 y315, (Reroller account name)
 Gui, Add, Text, vhbURL x30 y340, Webhook URL:
 Gui, Add, Edit, vheartBeatWebhookURL h20 w100 x110 y335 h18, %heartBeatWebhookURL%
 Gui, Add, Text, vDhbURL x30 y365, DeadHBWebhook URL:
-Gui, Add, Edit, vDeadHBWebhookURL h20 w100 x130 y360 h18, %DeadHBWebhookURL%
+Gui, Add, Edit, vDeadHBWebhookURL h20 w100 x150 y360 h18, %DeadHBWebhookURL%
 
 Gui, Add, Text, x275 y10, Choose Pack(s):
 
@@ -274,7 +274,7 @@ if (defaultLanguage = "Scale125") {
 	scaleParam := 287
 }
 
-; Gui, Add, DropDownList, x80 y245 w145 vdefaultLanguage choose%defaultLang%, Scale125
+;Gui, Add, DropDownList, x110 y95 w80 vdefaultLanguage choose%defaultLang%, Scale125|Scale100
 
 Gui, Show, , %localVersion% GP Rocket PTCGPB Bot Setup [Non-Commercial 4.0 International License] ;'
 Return

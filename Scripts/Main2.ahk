@@ -297,7 +297,7 @@ FindOrLoseImage(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT", E
 		FSTime := 180
 	if (safeTime >= FSTime) {
 		CreateStatusMessage("Instance " . scriptName . " has been `nstuck " . imageName . " for 90s. EL: " . EL . " sT: " . safeTime . " Killing it...")
-		restartGameInstance("Instance " . scriptName . " has been stuck " . imageName . "\nVersion:Rocket_6.3.12")
+		restartGameInstance("Instance " . scriptName . " has been stuck " . imageName . "\nVersion:Rocket_6.3.13")
 		failSafe := A_TickCount
 	}
 	return confirmed

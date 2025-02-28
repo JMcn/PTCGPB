@@ -7,7 +7,7 @@ SetDefaultMouseSpeed, 0
 SetBatchLines, -1
 SetTitleMatchMode, 3
 
-global adbShell, adbPath, adbPorts, winTitle, folderPath，filePath
+global adbShell, adbPath, adbPorts, winTitle, folderPath
 
 IniRead, winTitle, InjectAccount.ini, UserSettings, winTitle, 1
 IniRead, fileName, InjectAccount.ini, UserSettings, fileName, name
@@ -157,7 +157,7 @@ findAdbPorts(baseFolder := "C:\Program Files\Netease") {
 }
 
 loadAccount() {
-	global adbShell, adbPath, adbPorts, filePath
+	global adbShell, adbPath, adbPorts, fileName
 	if (!adbShell) {
 		adbShell := ComObjCreate("WScript.Shell").Exec(adbPath . " -s 127.0.0.1:" . adbPorts . " shell")
 		; Extract the Process ID
@@ -172,7 +172,19 @@ loadAccount() {
 
 	adbShell.StdIn.WriteLine("am force-stop jp.pokemon.pokemontcgp")
 
-	RunWait, % adbPath . " -s 127.0.0.1:" . adbPorts . " push """ . filePath . """" . " /sdcard/deviceAccount.xml",, Hide
+	loadDir := A_ScriptDir . "\" . fileName . ".xml"
+	if(!FileExist(loadDir)) {
+		loadDir := A_ScriptDir . "\GodPacks\" . fileName . ".xml"
+		if(!FileExist(loadDir)) {
+			loadDir := A_ScriptDir . "\SpecificCards\" . fileName . ".xml"
+			if(!FileExist(loadDir)) {
+				Msgbox, 16, , Can't find XML file: %loadDir%
+				ExitApp
+			}
+		}
+	}
+
+	RunWait, % adbPath . " -s 127.0.0.1:" . adbPorts . " push " . loadDir . " /sdcard/deviceAccount.xml",, Hide
 
 	Sleep, 500
 

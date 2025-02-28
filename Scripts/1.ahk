@@ -463,6 +463,9 @@ AddFriends(renew := false, getFC := false) {
 					clickButton := FindOrLoseImage(75, 340, 195, 530, 80, "Button", 0)
 					if(clickButton) {
 						StringSplit, pos, clickButton, `,  ; Split at ", "
+						if (scaleParam = 287) {
+							pos2 += 5
+						}
 						adbClick(pos1, pos2)
 					}
 				}
@@ -611,10 +614,18 @@ AddFriends(renew := false, getFC := false) {
 }
 
 changeProfile(character) {
-	FindImageAndClick(120, 500, 155, 530, , "Social", 143, 518, 500)
-	FindImageAndClick(20, 500, 55, 530, , "Home", 40, 516, 500) 212 276 230 294
-	FindImageAndClick(203, 272, 237, 300, , "Profile", 143, 95, 500)
-	FindImageAndClick(130, 448, 157, 457, , "OK7", 143, 179, 500)
+	if (scaleParam = 287) {
+		FindImageAndClick(120, 500, 160, 530, , "Social", 143, 518, 500)
+		FindImageAndClick(20, 500, 55, 530, , "Home", 40, 516, 500) 212 276 230 294
+		FindImageAndClick(203, 270, 237, 300, , "Profile", 145, 85, 500)
+		FindImageAndClick(80, 448, 217, 480, , "OK7", 143, 179, 500)
+	}
+	else {
+		FindImageAndClick(120, 500, 155, 530, , "Social", 143, 518, 500)
+		FindImageAndClick(20, 500, 55, 530, , "Home", 40, 516, 500) 212 276 230 294
+		FindImageAndClick(203, 272, 237, 300, , "Profile", 143, 95, 500)
+		FindImageAndClick(130, 448, 157, 457, , "OK7", 143, 179, 500)
+	}
 	Delay(3)
 	adbClick(143,244)
 	Delay(3)
@@ -629,12 +640,22 @@ changeProfile(character) {
 	Delay(3)
 	adbClick(143,466)
 	Delay(1)
-	FindImageAndClick(130, 448, 157, 457, , "OK7", 143, 316, 500)
-	Delay(3)
-	adbClick(143,370)
-	Delay(3)
-	adbClick(143,466)
-	Delay(1)
+	if (scaleParam = 287) {
+    FindImageAndClick(80, 448, 217, 480, , "OK7", 143, 310, 500)
+		Delay(3)
+		adbClick(145,235)
+		Delay(3)
+		adbClick(145,460)
+		Delay(1)
+	}
+	else {
+		FindImageAndClick(130, 448, 157, 457, , "OK7", 143, 316, 500)
+		Delay(3)
+		adbClick(143,370)
+		Delay(3)
+		adbClick(143,466)
+		Delay(1)
+	}
 }
 
 EraseInput(num := 0, total := 0) {
@@ -715,6 +736,9 @@ FindOrLoseImage(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT", E
 		pNeedle := GetNeedle(Path)
 		; ImageSearch within the region
 		vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, 30, 331, 50, 449, searchVariation)
+		if (scaleParam = 287) {
+			vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, 30, 325, 55, 445, searchVariation)
+		}
 		if (vRet = 1) {
 			adbShell.StdIn.WriteLine("su -c 'rm -rf /data/data/jp.pokemon.pokemontcgp/cache/*'") ; clear cache
 			waitadb()
@@ -773,6 +797,7 @@ FindImageAndClick(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT",
 		if (Y1 < 0) {
 			Y1 := 0
 		}
+		clicky += 2
 
 		if (imageName = "Platin") { ; can't do text so purple box
 			X1 := 141
@@ -780,6 +805,10 @@ FindImageAndClick(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT",
 			X2 := 208
 			Y2 := 224
 		} else if (imageName = "Opening") { ; Opening click (to skip cards) can't click on the immersive skip with 239, 497
+			X1 := 10
+			Y1 := 80
+			X2 := 50
+			Y2 := 115
 			clickx := 250
 			clicky := 505
 		}
@@ -860,6 +889,9 @@ FindImageAndClick(X1, Y1, X2, Y2, searchVariation := "", imageName := "DEFAULT",
 			pNeedle := GetNeedle(Path)
 			; ImageSearch within the region
 			vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, 30, 331, 50, 449, searchVariation)
+			if (scaleParam = 287) {
+				vRet := Gdip_ImageSearch(pBitmap, pNeedle, vPosXY, 30, 325, 55, 445, searchVariation)
+			}
 			if (vRet = 1) {
 				adbShell.StdIn.WriteLine("su -c 'rm -rf /data/data/jp.pokemon.pokemontcgp/cache/*'") ; clear cache
 				waitadb()
@@ -905,6 +937,9 @@ LevelUp() {
 	if(Leveled) {
 		clickButton := FindOrLoseImage(75, 340, 195, 530, 80, "Button", 0, failSafeTime)
 		StringSplit, pos, clickButton, `,  ; Split at ", "
+		if (scaleParam = 287) {
+			pos2 += 5
+		}
 		adbClick(pos1, pos2)
 	}
 	Delay(1)
@@ -1059,6 +1094,9 @@ menuDelete() {
 				clickImage := FindOrLoseImage(140, 340, 250, 530, 60, "DeleteAll", 0, failSafeTime)
 				if(clickImage) {
 					StringSplit, pos, clickImage, `,  ; Split at ", "
+					if (scaleParam = 287) {
+						pos2 += 5
+					}
 					adbClick(pos1, pos2)
 				}
 				else {
@@ -1075,6 +1113,9 @@ menuDelete() {
 			Sleep,%Delay%
 		}
 		StringSplit, pos, clickButton, `,  ; Split at ", "
+		if (scaleParam = 287) {
+			pos2 += 5
+		}
 		adbClick(pos1, pos2)
 		break
 		failSafeTime := (A_TickCount - failSafe) // 1000
@@ -1121,6 +1162,9 @@ menuDeleteStart() {
 					clickImage := FindOrLoseImage(140, 340, 250, 530, 60, "DeleteAll", 0, failSafeTime)
 					if(clickImage) {
 						StringSplit, pos, clickImage, `,  ; Split at ", "
+						if (scaleParam = 287) {
+							pos2 += 5
+						}
 						adbClick(pos1, pos2)
 					}
 					else {
@@ -1137,6 +1181,9 @@ menuDeleteStart() {
 				Sleep,%Delay%
 			}
 			StringSplit, pos, clickButton, `,  ; Split at ", "
+			if (scaleParam = 287) {
+				pos2 += 5
+			}
 			adbClick(pos1, pos2)
 			break
 			failSafeTime := (A_TickCount - failSafe) // 1000
@@ -1267,6 +1314,14 @@ FindBorders(prefix) {
 		,[196, 284, 249, 286]
 		,[70, 399, 123, 401]
 		,[155, 399, 208, 401]]
+	; 100% scale changes
+	if (scaleParam = 287) {
+		borderCoords := [[30, 278, 85, 280]
+			,[112, 278, 167, 280]
+			,[195, 278, 250, 280]
+			,[70, 395, 125, 397]
+			,[156, 395, 211, 397]]
+	}
 	pBitmap := from_window(WinExist(winTitle))
 	; imagePath := "C:\Users\Arturo\Desktop\PTCGP\GPs\" . Clipboard . ".png"
 	; pBitmap := Gdip_CreateBitmapFromFile(imagePath)
@@ -1296,6 +1351,11 @@ FindGodPack() {
 	}
 	borderCoords := [[20, 284, 90, 286]
 		,[103, 284, 173, 286]]
+	; Change borderCoords if scaleParam is 287 for 100%
+	if (scaleParam = 287) {
+		borderCoords := [[21, 278, 91, 280]
+			,[105, 278, 175, 280]]
+	}
 	if(deleteMethod != "5 Pack") {
 		if(packs = 3)
 			packs := 0

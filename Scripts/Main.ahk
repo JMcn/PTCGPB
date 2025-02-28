@@ -84,6 +84,9 @@ if (!MainLanguage){
 }else if (MainLanguage = "Doods"){
 	langCode := "99_Doods"
 	langCode_cor := [88, 113, 119, 124]
+	if (scaleParam = 287) {
+		langCode_cor := [88, 110, 125, 127]
+	}
 }
 resetWindows()
 MaxRetries := 10
@@ -165,7 +168,12 @@ Loop {
 					}
 				} else if(FindOrLoseImage(80, 170, 120, 195, , "player", 0)) {
 					Sleep, 250
-					adbClick(210, 210)
+					if (scaleParam = 287) {
+						adbClick(210, 200)
+					}
+					else {
+						adbClick(210, 210)
+					}
 					Sleep, 1500
 				} else if(FindOrLoseImage(225, 195, 250, 220, , "Pending", 0)) {
 					adbClick(245, 210)
@@ -196,12 +204,25 @@ return
 
 Check_button(){
 	Sleep, 500
-	if(FindOrLoseImage(75, 340, 195, 530, 80, "Button", 0)) {
-		Loop{
-			if(FindImageAndClick(190, 195, 215, 220, , "DeleteFriend", 149, 372, 1500)) {
-				Sleep, %Delay%
-				adbClick(210, 210)
+	if (scaleParam = 287) {
+		if(FindOrLoseImage(110, 370, 195, 530, 80, "Button", 0)) {
+			Loop{
+				if(FindImageAndClick(190, 195, 215, 220, , "DeleteFriend", 149, 372, 1500)) {
+					Sleep, %Delay%
+					adbClick(210, 210)
 				break
+				}
+			}
+		}         
+	}
+	else {
+		if(FindOrLoseImage(75, 340, 195, 530, 80, "Button", 0)) {
+			Loop{
+				if(FindImageAndClick(190, 195, 215, 220, , "DeleteFriend", 149, 372, 1500)) {
+					Sleep, %Delay%
+					adbClick(210, 210)
+				break
+				}
 			}
 		}
 	}

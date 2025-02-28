@@ -274,7 +274,7 @@ if (defaultLanguage = "Scale125") {
 	scaleParam := 287
 }
 
-;Gui, Add, DropDownList, x110 y95 w80 vdefaultLanguage choose%defaultLang%, Scale125|Scale100
+Gui, Add, DropDownList, x110 y95 w80 vdefaultLanguage choose%defaultLang%, Scale125|Scale100
 
 Gui, Show, , %localVersion% GP Rocket PTCGPB Bot Setup [Non-Commercial 4.0 International License] ;'
 Return

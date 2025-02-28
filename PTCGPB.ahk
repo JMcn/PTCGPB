@@ -20,7 +20,7 @@ if not A_IsAdmin
 
 ;KillADBProcesses()
 
-global Instances, jsonFileName, PacksText, runMain, scaleParam, proxy, screenshotName
+global Instances, jsonFileName, PacksText, runMain, scaleParam, proxy
 
 totalFile := A_ScriptDir . "\json\total.json"
 backupFile := A_ScriptDir . "\json\total-backup.json"
@@ -407,25 +407,25 @@ Start:
 					IniWrite, 0, HeartBeat.ini, HeartBeat, Main
 				}
 				Loop %Instances% {
-					if(checkHBWebhookURL != 0) {
-						screenShot := Screenshot(A_Index)
-						if(heartBeatName)
-							discordUserID := heartBeatName
-						if(firstRun) {
-							SettingsFile := A_ScriptDir . "\Settings.ini"
-							LogToDiscord("_firstRun\n" . screenshotName, screenShot, discordUserId, SettingsFile, true)
-							firstRun := false
-						}
-						else {
-							LogToDiscord("\n" . screenshotName, screenShot, discordUserId, , true)
-						}
-					}
 					IniRead, value, HeartBeat.ini, HeartBeat, Instance%A_Index%
 					if(value)
 						Online.push(1)
 					else
 						Online.Push(0)
 					IniWrite, 0, HeartBeat.ini, HeartBeat, Instance%A_Index%
+				}
+				if(checkHBWebhookURL != 0) {
+					screenShot := Check_instance()
+					if(heartBeatName)
+						discordUserID := heartBeatName
+					if(firstRun) {
+						SettingsFile := A_ScriptDir . "\Settings.ini"
+						LogToDiscord(" firstRun", screenShot, discordUserId, SettingsFile, true)
+						firstRun := false
+					}
+					else {
+						LogToDiscord("", screenShot, discordUserId, , true)
+					}
 				}
 				for index, value in Online {
 					if(index = Online.MaxIndex())
@@ -840,22 +840,35 @@ VersionCompare(v1, v2) {
 	return 0 ; Versions are equal
 }
 
-Screenshot(winTitle := 1) {
-	global screenshotName
-	SetWorkingDir %A_ScriptDir%  ; Ensures the working directory is the script's directory
-	; Define folder and file paths
-	screenshotsDir := A_ScriptDir "\Screenshots\check"
+Check_instance(){
+	global Instances
+	SetWorkingDir %A_ScriptDir%
+	screenshotsDir := A_ScriptDir "\Logs"
 	if !FileExist(screenshotsDir)
 		FileCreateDir, %screenshotsDir%
+	screenshotFile := screenshotsDir "\check.png"
 
-	; File path for saving the screenshot locally
-	screenshotName := A_Now . "_" . winTitle . "_check.png"
-	screenshotFile := screenshotsDir "\" . screenshotName
+	pBitmapList := []
+	Loop %Instances% {
+		if pBitmap := from_window(WinExist(A_Index))
+			pBitmapList[A_Index] := pBitmap
+		else Continue
+	}
 
-	pBitmap := from_window(WinExist(winTitle))
-	Gdip_SaveBitmapToFile(pBitmap, screenshotFile)
+width := Gdip_GetImageWidth(pBitmapList[1]), height := Gdip_GetImageHeight(pBitmapList[1])
+pNewBitmap := Gdip_CreateBitmap(width * pBitmapList.MaxIndex(), height)
+pGraphics := Gdip_GraphicsFromImage(pNewBitmap), Gdip_SetSmoothingMode(pGraphics, 4)
 
-	return screenshotFile
+xOffset := 0
+for k, pBitmap in pBitmapList
+	Gdip_DrawImage(pGraphics, pBitmap, xOffset, 0, width, height), xOffset += width
+
+Gdip_SaveBitmapToFile(pNewBitmap, screenshotFile)
+
+for k, pBitmap in pBitmapList
+	Gdip_DisposeImage(pBitmap)
+
+return screenshotFile
 }
 
 from_window(ByRef image) {

@@ -7,7 +7,7 @@ SetDefaultMouseSpeed, 0
 SetBatchLines, -1
 SetTitleMatchMode, 3
 
-global adbShell, adbPath, adbPorts, winTitle, folderPath
+global adbShell, adbPath, adbPorts, winTitle, folderPath，filePath
 
 IniRead, winTitle, InjectAccount.ini, UserSettings, winTitle, 1
 IniRead, fileName, InjectAccount.ini, UserSettings, fileName, name
@@ -55,10 +55,15 @@ SaveSettings:
 	}
 
 	filePath := A_ScriptDir . "\" . fileName . ".xml"
-
 	if(!FileExist(filePath)) {
-		Msgbox, 16, , Can't find XML file: %filePath% ;'
-		ExitApp
+		filePath := A_ScriptDir . "\GodPacks\" . fileName . ".xml"
+		if(!FileExist(filePath)) {
+			filePath := A_ScriptDir . "\SpecificCards\" . fileName . ".xml"
+			if(!FileExist(filePath)) {
+				Msgbox, 16, , Can't find XML file: %filePath% ;'
+				ExitApp
+			}
+		}
 	}
 	RunWait, %adbPath% connect 127.0.0.1:%adbPorts%,, Hide
 
@@ -152,7 +157,7 @@ findAdbPorts(baseFolder := "C:\Program Files\Netease") {
 }
 
 loadAccount() {
-	global adbShell, adbPath, adbPorts, fileName
+	global adbShell, adbPath, adbPorts, filePath
 	if (!adbShell) {
 		adbShell := ComObjCreate("WScript.Shell").Exec(adbPath . " -s 127.0.0.1:" . adbPorts . " shell")
 		; Extract the Process ID
@@ -167,9 +172,7 @@ loadAccount() {
 
 	adbShell.StdIn.WriteLine("am force-stop jp.pokemon.pokemontcgp")
 
-	loadDir := A_ScriptDir . "\" . fileName
-
-	RunWait, % adbPath . " -s 127.0.0.1:" . adbPorts . " push """ . loadDir . ".xml""" . " /sdcard/deviceAccount.xml",, Hide
+	RunWait, % adbPath . " -s 127.0.0.1:" . adbPorts . " push """ . filePath . """" . " /sdcard/deviceAccount.xml",, Hide
 
 	Sleep, 500
 

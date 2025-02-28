@@ -1,12 +1,12 @@
 #Include %A_ScriptDir%\Scripts\Include\Gdip_All.ahk
-version = Rockets PTCGP Bot
+version = GP Rocket PTCGP Bot
 #SingleInstance, force
 CoordMode, Mouse, Screen
 SetTitleMatchMode, 3
 
 githubUser := ""
 repoName := "PTCGPB"
-localVersion := "v6.3.9.1"
+localVersion := "v6.3.12"
 scriptFolder := A_ScriptDir
 zipPath := A_Temp . "\update.zip"
 extractPath := A_Temp . "\update"
@@ -20,7 +20,7 @@ if not A_IsAdmin
 
 ;KillADBProcesses()
 
-global Instances, jsonFileName, PacksText, runMain, scaleParam, proxy
+global Instances, instanceStartDelay, jsonFileName, PacksText, runMain, scaleParam, proxy
 
 totalFile := A_ScriptDir . "\json\total.json"
 backupFile := A_ScriptDir . "\json\total-backup.json"
@@ -53,6 +53,7 @@ IniRead, discordUserId, Settings.ini, UserSettings, discordUserId, ""
 IniRead, Columns, Settings.ini, UserSettings, Columns, 5
 IniRead, godPack, Settings.ini, UserSettings, godPack, Continue
 IniRead, Instances, Settings.ini, UserSettings, Instances, 1
+IniRead, instanceStartDelay, Settings.ini, UserSettings, instanceStartDelay, 0
 IniRead, defaultLanguage, Settings.ini, UserSettings, defaultLanguage, Scale125
 IniRead, MainLanguage, Settings.ini, UserSettings, MainLanguage, Chinese
 IniRead, SelectedMonitorIndex, Settings.ini, UserSettings, SelectedMonitorIndex, 1
@@ -94,17 +95,19 @@ else
 
 Gui, Add, Text, x10 y30, Rerolling Instances:
 Gui, Add, Text, x30 y50, Instances:
-Gui, Add, Edit, vInstances w25 x80 y45 h18, %Instances%
-Gui, Add, Text, x30 y75, Columns:
-Gui, Add, Edit, vColumns w25 x80 y70 h18, %Columns%
+Gui, Add, Edit, vInstances w25 x90 y45 h18, %Instances%
+Gui, Add, Text, x30 y72, Start Delay:
+Gui, Add, Edit, vinstanceStartDelay w25 x90 y67 h18, %instanceStartDelay%
+Gui, Add, Text, x30 y95, Columns:
+Gui, Add, Edit, vColumns w25 x90 y90 h18, %Columns%
 if(runMain)
-	Gui, Add, Checkbox, Checked vrunMain x30 y95, Run Main
+	Gui, Add, Checkbox, Checked vrunMain x30 y115, Run Main
 else
-	Gui, Add, Checkbox, vrunMain x30 y95, Run Main
+	Gui, Add, Checkbox, vrunMain x30 y115, Run Main
 
-Gui, Add, Text, x10 y120, God Pack Settings:
-Gui, Add, Text, x30 y140, Min. 2 Stars:
-Gui, Add, Edit, vminStars w25 x90 y135 h18, %minStars%
+Gui, Add, Text, x10 y135, God Pack Settings:
+Gui, Add, Text, x30 y155, Min. 2 Stars:
+Gui, Add, Edit, vminStars w25 x90 y155 h18, %minStars%
 
 Gui, Add, Text, x10 y160, Method:
 Gui, Add, Text, x130 y160, Language:
@@ -131,25 +134,25 @@ if (MainLanguage = "Chinese") {
 Gui, Add, DropDownList, vdeleteMethod gdeleteSettings choose%defaultDelete% x55 y158 w60, 5 Pack|3 Pack|Inject
 Gui, Add, DropDownList, vMainLanguage gdeleteSettings choose%defaultMainLanguage% x185 y158 w60, Chinese|English|Doods
 if(packMethod)
-	Gui, Add, Checkbox, Checked vpackMethod x30 y185, 1 Pack Method
+	Gui, Add, Checkbox, Checked vpackMethod x30 y205, 1 Pack Method
 else
-	Gui, Add, Checkbox, vpackMethod x30 y185, 1 Pack Method
+	Gui, Add, Checkbox, vpackMethod x30 y205, 1 Pack Method
 
 if(nukeAccount)
-	Gui, Add, Checkbox, Checked vnukeAccount x30 y205, Menu Delete Account
+	Gui, Add, Checkbox, Checked vnukeAccount x30 y225, Menu Delete Account
 else
-	Gui, Add, Checkbox, vnukeAccount x30 y205, Menu Delete Account
+	Gui, Add, Checkbox, vnukeAccount x30 y225, Menu Delete Account
 
 if(StrLen(discordUserID) < 3)
 	discordUserID =
 if(StrLen(discordWebhookURL) < 3)
 	discordWebhookURL =
 
-Gui, Add, Text, x10 y225, Discord Settings:
-Gui, Add, Text, x30 y245, Discord ID:
-Gui, Add, Edit, vdiscordUserId w100 x90 y240 h18, %discordUserId%
-Gui, Add, Text, x30 y270, Discord Webhook URL:
-Gui, Add, Edit, vdiscordWebhookURL h20 w100 x150 y265 h18, %discordWebhookURL%
+Gui, Add, Text, x10 y245, Discord Settings:
+Gui, Add, Text, x30 y265, Discord ID:
+Gui, Add, Edit, vdiscordUserId w100 x90 y260 h18, %discordUserId%
+Gui, Add, Text, x30 y290, Discord Webhook URL:
+Gui, Add, Edit, vdiscordWebhookURL h20 w100 x150 y285 h18, %discordWebhookURL%
 
 if(StrLen(heartBeatName) < 3)
 	heartBeatName =
@@ -273,7 +276,7 @@ if (defaultLanguage = "Scale125") {
 
 ; Gui, Add, DropDownList, x80 y245 w145 vdefaultLanguage choose%defaultLang%, Scale125
 
-Gui, Show, , %localVersion% Rockets PTCGPB Bot Setup [Non-Commercial 4.0 International License] ;'
+Gui, Show, , %localVersion% GP Rocket PTCGPB Bot Setup [Non-Commercial 4.0 International License] ;'
 Return
 
 deleteSettings:
@@ -293,6 +296,10 @@ ArrangeWindows:
 	GuiControlGet, Instances,, Instances
 	GuiControlGet, Columns,, Columns
 	GuiControlGet, SelectedMonitorIndex,, SelectedMonitorIndex
+	if (runMain) {
+		resetWindows("Main", SelectedMonitorIndex)
+		sleep, 10
+	}
 	Loop %Instances% {
 		resetWindows(A_Index, SelectedMonitorIndex)
 		sleep, 10
@@ -325,6 +332,7 @@ Start:
 	IniWrite, %openPack%, Settings.ini, UserSettings, openPack
 	IniWrite, %godPack%, Settings.ini, UserSettings, godPack
 	IniWrite, %Instances%, Settings.ini, UserSettings, Instances
+	IniWrite, %instanceStartDelay%, Settings.ini, UserSettings, instanceStartDelay
 	;IniWrite, %setSpeed%, Settings.ini, UserSettings, setSpeed
 	IniWrite, %defaultLanguage%, Settings.ini, UserSettings, defaultLanguage
 	IniWrite, %SelectedMonitorIndex%, Settings.ini, UserSettings, SelectedMonitorIndex
@@ -353,6 +361,12 @@ Start:
 	IniWrite, %Mewtwo%, Settings.ini, UserSettings, Mewtwo
 	IniWrite, %slowMotion%, Settings.ini, UserSettings, slowMotion
 
+	; Run main before instances to account for instance start delay
+	if (runMain) {
+		FileName := "Scripts\Main.ahk"
+		Run, %FileName%
+	}
+
 	; Loop to process each instance
 	Loop, %Instances%
 	{
@@ -371,12 +385,14 @@ Start:
 		FileName := "Scripts\" . A_Index . ".ahk"
 		Command := FileName
 
+		if (A_Index != 1 && instanceStartDelay > 0) {
+			instanceStartDelayMS := instanceStartDelay * 1000
+			Sleep, instanceStartDelayMS
+		}
+
 		Run, %Command%
 	}
-	if(runMain) {
-		FileName := "Scripts\Main.ahk"
-		Run, %FileName%
-	}
+
 	if(inStr(FriendID, "https"))
 		DownloadFile(FriendID, "ids.txt")
 	SelectedMonitorIndex := RegExReplace(SelectedMonitorIndex, ":.*$")
@@ -442,7 +458,7 @@ Start:
 				if(onlineAHK = "Online: ")
 					onlineAHK := "Online: none."
 
-				discMessage := "\n" . onlineAHK . "\n" . offlineAHK . "\n" . packStatus "\n" . deleteMethod . "\nVer. Rocket_6.3.9.1"
+				discMessage := "\n" . onlineAHK . "\n" . offlineAHK . "\n" . packStatus "\n" . deleteMethod . "\nVer. Rocket_6.3.12"
 				if(heartBeatName)
 					discordUserID := heartBeatName
 				LogToDiscord(discMessage, , discordUserID)
@@ -566,46 +582,27 @@ resetWindows(Title, SelectedMonitorIndex){
 	global Columns, runMain
 	RetryCount := 0
 	MaxRetries := 10
-	if(runMain){
-		if(Title = 1) {
-			Loop
-			{
-				try {
-					; Get monitor origin from index
-					SelectedMonitorIndex := RegExReplace(SelectedMonitorIndex, ":.*$")
-					SysGet, Monitor, Monitor, %SelectedMonitorIndex%
-
-					rowHeight := 533  ; Adjust the height of each row
-					currentRow := Floor((Title - 1) / Columns)
-					y := currentRow * rowHeight
-					x := Mod((Title - 1), Columns) * scaleParam
-					Title := "Main"
-					WinMove, %Title%, , % (MonitorLeft + x), % (MonitorTop + y), scaleParam, 537
-					break
-				}
-				catch {
-					if (RetryCount > MaxRetries)
-						Pause
-				}
-				Sleep, 1000
-			}
-			Title := 1
-		}
-	}
 	Loop
 	{
+		msgbox %Title%
 		try {
 			; Get monitor origin from index
 			SelectedMonitorIndex := RegExReplace(SelectedMonitorIndex, ":.*$")
 			SysGet, Monitor, Monitor, %SelectedMonitorIndex%
-			if(runMain)
-				Title := Title + 1
+			if(runMain) {
+				if (Title = "Main") {
+					instanceIndex := 1
+				} else {
+					instanceIndex := Title + 1
+				}
+			} else {
+				instanceIndex := Title
+			}
 			rowHeight := 533  ; Adjust the height of each row
-			currentRow := Floor((Title - 1) / Columns)
+			currentRow := Floor((instanceIndex - 1) / Columns)
 			y := currentRow * rowHeight
-			x := Mod((Title - 1), Columns) * scaleParam
-			if(runMain)
-				Title := Title - 1
+			x := Mod((instanceIndex - 1), Columns) * scaleParam
+			msgbox %Title% %x% %y% %scaleParam%
 			WinMove, %Title%, , % (MonitorLeft + x), % (MonitorTop + y), scaleParam, 537
 			break
 		}
